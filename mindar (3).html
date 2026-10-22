@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AR Dodo</title>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.4/dist/aframe-extras.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #status {
+      position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 10;
+      padding: 8px 12px; border-radius: 8px;
+      background: rgba(0,0,0,.65); color: #fff;
+      font: 14px/1.4 sans-serif; pointer-events: none;
+    }
+  </style>
+</head>
+
+<body>
+<div id="status">กำลังโหลด...</div>
+
+<a-scene
+  mindar-image="imageTargetSrc: https://jnst4w.github.io/jnst4w.ar/targets.mind; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 5; warmupTolerance: 3;"
+  color-space="sRGB"
+  renderer="colorManagement: true, physicallyCorrectLights"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
+
+  <a-assets timeout="30000">
+    <!-- แก้ path ตรงนี้ให้ตรงกับที่อัปโหลดไฟล์ไว้จริง -->
+    <a-asset-item id="dodo" src="https://jnst4w.github.io/jnst4w.ar/dodo_model.glb"></a-asset-item>
+  </a-assets>
+
+  <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+  <!-- Target 0 = รูปแรกที่ใช้สร้าง targets.mind -->
+  <a-entity id="target0" mindar-image-target="targetIndex: 0">
+    <a-entity light="type: ambient; intensity: 1.2"></a-entity>
+    <a-entity light="type: directional; intensity: 1.5" position="1 2 3"></a-entity>
+    <a-gltf-model id="dodoModel" src="#dodo"
+      animation-mixer
+      rotation="90 0 0"
+      position="0 0 0"
+      scale="1 1 1"></a-gltf-model>
+  </a-entity>
+</a-scene>
+
+<script>
+  const status = document.getElementById('status');
+  const say = (t) => { status.textContent = t; };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const scene = document.querySelector('a-scene');
+    const target = document.getElementById('target0');
+    const model = document.getElementById('dodoModel');
+    const asset = document.getElementById('dodo');
+
+    scene.addEventListener('arReady', () => say('กล้องพร้อมแล้ว ส่องไปที่รูปต้นฉบับ'));
+    scene.addEventListener('arError', () => say('เปิดกล้อง/โหลด targets.mind ไม่สำเร็จ (ตรวจสิทธิ์กล้องและ path ไฟล์ .mind)'));
+
+    asset.addEventListener('error', () => say('โหลด dodo_model.glb ไม่ได้ ตรวจ path ไฟล์โมเดล'));
+    model.addEventListener('model-loaded', () => console.log('model loaded'));
+    model.addEventListener('model-error', () => say('ไฟล์โมเดลเสียหรือเปิดไม่ได้'));
+
+    target.addEventListener('targetFound', () => say('เจอรูปแล้ว'));
+    target.addEventListener('targetLost', () => say('รูปหลุด ส่องใหม่อีกครั้ง'));
+  });
+</script>
+</body>
+</html>
